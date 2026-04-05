@@ -98,7 +98,7 @@ export const perfilService = {
   async actualizarPerfil(userId: string, cambios: Partial<PerfilClienta>) {
     const { data, error } = await supabase
       .from('perfiles_clientas')
-      .update({ ...cambios, actualizadoEn: new Date().toISOString() })
+      .update({ ...cambios, actualizado_en: new Date().toISOString() })
       .eq('user_id', userId)
       .select()
       .single();
@@ -130,7 +130,7 @@ export const perfilService = {
     const { data, error } = await supabase
       .from('perfiles_clientas')
       .select('*')
-      .order('actualizadoEn', { ascending: false });
+      .order('actualizado_en', { ascending: false });
 
     if (error) throw error;
     return data ?? [];
@@ -151,7 +151,7 @@ export const perfilService = {
       .from('perfiles_clientas')
       .select('*')
       .eq('etapa_kanban', etapa)
-      .order('actualizadoEn', { ascending: false });
+      .order('actualizado_en', { ascending: false });
 
     if (error) throw error;
     return data ?? [];
@@ -172,7 +172,7 @@ export const perfilService = {
 
 export const sesionService = {
   async obtenerSesiones(clientaId?: string): Promise<Sesion[]> {
-    let query = supabase.from('sesiones').select('*').order('fechaHora', { ascending: true });
+    let query = supabase.from('sesiones').select('*').order('fecha_hora', { ascending: true });
 
     if (clientaId) {
       query = query.eq('clienta_id', clientaId);
@@ -228,7 +228,7 @@ export const sesionService = {
 
 export const informeService = {
   async obtenerInformes(clientaId?: string): Promise<InformeIA[]> {
-    let query = supabase.from('informes_ia').select('*').order('creadoEn', { ascending: false });
+    let query = supabase.from('informes_ia').select('*').order('creado_en', { ascending: false });
 
     if (clientaId) {
       query = query.eq('clienta_id', clientaId);
@@ -270,7 +270,7 @@ export const postitService = {
     const { data, error } = await supabase
       .from('postits')
       .select('*')
-      .order('creadoEn', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) throw error;
     return data ?? [];
@@ -313,7 +313,7 @@ export const looksService = {
       .from('looks')
       .select('*')
       .eq('clienta_id', clientaId)
-      .order('creadoEn', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) throw error;
     return data ?? [];
@@ -344,7 +344,7 @@ export const chatService = {
       .from('mensajes')
       .select('*')
       .eq('conversacion_id', conversacionId)
-      .order('creadoEn', { ascending: true });
+      .order('creado_en', { ascending: true });
 
     if (error) throw error;
     return data ?? [];
@@ -414,7 +414,7 @@ export const notificacionService = {
       .from('notificaciones')
       .select('*')
       .eq('user_id', userId)
-      .order('creadaEn', { ascending: false })
+      .order('creada_en', { ascending: false })
       .limit(50);
 
     if (error) throw error;
