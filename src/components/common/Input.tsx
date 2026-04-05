@@ -57,9 +57,9 @@ export function Input({
       <View
         style={[
           styles.inputWrapper,
-          enfocado && styles.inputWrapperEnfocado,
-          error && styles.inputWrapperError,
-          deshabilitado && styles.inputWrapperDeshabilitado,
+          enfocado ? styles.inputWrapperEnfocado : undefined,
+          error ? styles.inputWrapperError : undefined,
+          deshabilitado ? styles.inputWrapperDeshabilitado : undefined,
         ]}
       >
         {prefijo && <View style={styles.prefijo}>{prefijo}</View>}

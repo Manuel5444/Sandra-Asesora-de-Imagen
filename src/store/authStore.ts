@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ session, user, role, loading: false });
 
       // Escuchar cambios de autenticación
-      authService.onAuthStateChange((event, newSession) => {
+      authService.onAuthStateChange(async (event, newSession) => {
         const newUser = newSession?.user ?? null;
         const newRole: UserRole | null = newUser
           ? newUser.email === SANDRA_EMAIL
