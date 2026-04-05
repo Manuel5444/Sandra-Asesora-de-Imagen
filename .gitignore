@@ -1,0 +1,33 @@
+node_modules/
+.expo/
+dist/
+build/
+ios/
+android/
+
+# Secretos — NUNCA subir al repositorio
+.env
+.env.local
+.env.production
+
+# Assets generados
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Editor
+.DS_Store
+.vscode/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# Expo
+web-build/
