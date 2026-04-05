@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,6 +12,7 @@ import { KanbanScreen } from '../screens/admin/KanbanScreen';
 import { PostItsScreen } from '../screens/admin/PostItsScreen';
 import { MetricasScreen } from '../screens/admin/MetricasScreen';
 import { useAuthStore } from '../store/authStore';
+import { useAdminStore } from '../store/adminStore';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AdminDrawerParamList } from '../types';
 
@@ -78,11 +79,71 @@ function DrawerContenido(props: any) {
 // Stack para las pantallas que necesitan navegación anidada (CRM → Detalle)
 const Stack = createNativeStackNavigator();
 
+function NuevaClientaScreen({ navigation }: { navigation: any }) {
+  const [nombre, setNombre] = React.useState('');
+  const [apellidos, setApellidos] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [ciudad, setCiudad] = React.useState('Madrid');
+  const [guardando, setGuardando] = React.useState(false);
+  const { TextInput } = require('react-native');
+
+  const guardar = async () => {
+    if (!nombre.trim() || !email.trim()) return;
+    setGuardando(true);
+    try {
+      await useAdminStore.getState().crearClienta({ nombre, apellidos, email, ciudad });
+      navigation.goBack();
+    } catch {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: Colors.cremacalida }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingTop: Spacing['3xl'], paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.lino }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
+          <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: FontSize.uiMd, color: Colors.camel }}>← Volver</Text>
+        </TouchableOpacity>
+        <Text style={{ fontFamily: FontFamily.displayBold, fontSize: FontSize.h3, color: Colors.negrocacao, flex: 1 }}>Nueva Clienta</Text>
+        <TouchableOpacity
+          onPress={guardar}
+          disabled={!nombre.trim() || !email.trim() || guardando}
+          style={{ backgroundColor: (!nombre.trim() || !email.trim()) ? Colors.piedra : Colors.camel, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs }}
+        >
+          <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: FontSize.uiSm, color: Colors.cremacalida }}>
+            {guardando ? 'Guardando…' : 'Guardar'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={{ padding: Spacing.xl, gap: Spacing.md }}>
+        {[
+          { label: 'Nombre *', value: nombre, set: setNombre, placeholder: 'Ana' },
+          { label: 'Apellidos', value: apellidos, set: setApellidos, placeholder: 'García López' },
+          { label: 'Email *', value: email, set: setEmail, placeholder: 'ana@ejemplo.com' },
+          { label: 'Ciudad', value: ciudad, set: setCiudad, placeholder: 'Madrid' },
+        ].map(({ label, value, set, placeholder }) => (
+          <View key={label}>
+            <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: FontSize.uiSm, color: Colors.negrocacao, marginBottom: 4 }}>{label}</Text>
+            <TextInput
+              value={value}
+              onChangeText={set}
+              placeholder={placeholder}
+              placeholderTextColor={Colors.piedra}
+              style={{ backgroundColor: Colors.lino, borderRadius: BorderRadius.lg, padding: Spacing.md, fontFamily: FontFamily.sansRegular, fontSize: FontSize.bodyMd, color: Colors.negrocacao, borderWidth: 1, borderColor: Colors.doradoarena }}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function CRMStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="CRMLista" component={CRMScreen} />
       <Stack.Screen name="CRMDetalle" component={CRMDetalleScreen} />
+      <Stack.Screen name="NuevaClienta" component={NuevaClientaScreen} />
     </Stack.Navigator>
   );
 }
@@ -103,7 +164,7 @@ export function AdminNavigator() {
       drawerContent={(props) => <DrawerContenido {...props} />}
       screenOptions={{
         headerShown: false,
-        drawerType: 'slide',
+        drawerType: Platform.OS === 'web' ? 'permanent' : 'slide',
         drawerStyle: { width: 280 },
         overlayColor: 'rgba(26, 20, 16, 0.6)',
       }}

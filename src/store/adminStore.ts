@@ -41,6 +41,7 @@ interface AdminState {
   seleccionarClienta: (clienta: PerfilClienta | null) => void;
   actualizarEtapaKanban: (clientaId: string, etapa: EtapaKanban) => Promise<void>;
   buscarClientas: (query: string) => Promise<void>;
+  crearClienta: (datos: { nombre: string; apellidos: string; email: string; ciudad: string }) => Promise<void>;
   filtrarPorEtapa: (etapa: EtapaKanban | null) => void;
 
   // Acciones agenda
@@ -118,6 +119,27 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
     } catch {
       set({ error: 'Error en la búsqueda', cargando: false });
+    }
+  },
+
+  crearClienta: async (datos: { nombre: string; apellidos: string; email: string; ciudad: string }) => {
+    try {
+      await perfilService.crearPerfil({
+        userId: '',
+        nombre: datos.nombre,
+        apellidos: datos.apellidos,
+        email: datos.email,
+        ciudad: datos.ciudad,
+        momentoVital: 'reinvencion_profesional',
+        plan: 'basico',
+        puntosSandra: 0,
+        etapaKanban: 'nuevo_lead',
+      } as any);
+      const clientas = await perfilService.obtenerTodasClientas();
+      set({ clientas });
+    } catch (e) {
+      set({ error: 'Error creando clienta' });
+      throw e;
     }
   },
 
