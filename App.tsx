@@ -12,19 +12,23 @@
  * Stack: React Native · Expo SDK 51 · TypeScript · Supabase · Claude API
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
+import { Platform, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
-// Mantener la splash screen visible mientras se cargan los recursos
-SplashScreen.preventAutoHideAsync();
+// SplashScreen solo en móvil — en web causa pantalla en blanco
+let SplashScreen: { preventAutoHideAsync: () => void; hideAsync: () => Promise<void> } | null = null;
+if (Platform.OS !== 'web') {
+  SplashScreen = require('expo-splash-screen');
+  SplashScreen!.preventAutoHideAsync();
+}
 
 export default function App() {
-  const [fontsCargadas, setFontsCargadas] = React.useState(false);
+  const [listo, setListo] = React.useState(false);
 
   useEffect(() => {
     cargarRecursos();
@@ -33,15 +37,12 @@ export default function App() {
   const cargarRecursos = async () => {
     try {
       await Font.loadAsync({
-        // Cormorant Garamond — títulos y firma editorial
         'CormorantGaramond-Regular': require('./assets/fonts/CormorantGaramond-Regular.ttf'),
         'CormorantGaramond-Medium': require('./assets/fonts/CormorantGaramond-Medium.ttf'),
         'CormorantGaramond-SemiBold': require('./assets/fonts/CormorantGaramond-SemiBold.ttf'),
         'CormorantGaramond-Bold': require('./assets/fonts/CormorantGaramond-Bold.ttf'),
         'CormorantGaramond-Italic': require('./assets/fonts/CormorantGaramond-Italic.ttf'),
         'CormorantGaramond-BoldItalic': require('./assets/fonts/CormorantGaramond-BoldItalic.ttf'),
-
-        // DM Sans — UI y cuerpo de texto
         'DMSans-Regular': require('./assets/fonts/DMSans-Regular.ttf'),
         'DMSans-Medium': require('./assets/fonts/DMSans-Medium.ttf'),
         'DMSans-SemiBold': require('./assets/fonts/DMSans-SemiBold.ttf'),
@@ -50,25 +51,25 @@ export default function App() {
         'DMSans-Italic': require('./assets/fonts/DMSans-Italic.ttf'),
       });
     } catch (e) {
-      // Las fuentes fallan en entorno sin assets — la app usa fuentes del sistema
       console.warn('Fuentes no cargadas, usando fuentes del sistema:', e);
     } finally {
-      setFontsCargadas(true);
+      setListo(true);
+      if (SplashScreen) await SplashScreen.hideAsync();
     }
   };
 
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsCargadas) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsCargadas]);
-
-  if (!fontsCargadas) return null;
+  if (!listo) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#1A1410', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color="#D4B896" size="large" />
+      </View>
+    );
+  }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
         <AppNavigator />
       </SafeAreaProvider>
     </GestureHandlerRootView>
