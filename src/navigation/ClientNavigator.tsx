@@ -33,8 +33,8 @@ export function ClientNavigator() {
         tabBarStyle: {
           backgroundColor: Colors.negrocacao,
           borderTopWidth: 0,
-          height: 60 + insets.bottom,
-          paddingBottom: insets.bottom,
+          height: 70 + insets.bottom,
+          paddingBottom: insets.bottom + 4,
           paddingTop: Spacing.sm,
           borderTopLeftRadius: BorderRadius['2xl'],
           borderTopRightRadius: BorderRadius['2xl'],
@@ -43,7 +43,7 @@ export function ClientNavigator() {
         tabBarInactiveTintColor: Colors.piedra,
         tabBarLabelStyle: {
           fontFamily: FontFamily.sansRegular,
-          fontSize: FontSize.micro,
+          fontSize: 13,
           marginTop: 2,
         },
       }}
@@ -73,7 +73,7 @@ export function ClientNavigator() {
 
 const styles = StyleSheet.create({
   icono: {
-    fontSize: 20,
+    fontSize: 24,
     fontFamily: FontFamily.sansRegular,
   },
   iconoActivo: {

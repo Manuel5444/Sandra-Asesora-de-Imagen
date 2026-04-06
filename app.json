@@ -51,7 +51,6 @@
       "backgroundColor": "#FAF8F5"
     },
     "plugins": [
-      "expo-router",
       "expo-font",
       [
         "expo-camera",
@@ -68,14 +67,10 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
           "color": "#D4B896"
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
       "eas": {
         "projectId": "sandra-asesora-de-imagen"
