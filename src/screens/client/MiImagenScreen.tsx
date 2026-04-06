@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
@@ -27,18 +27,19 @@ export function MiImagenScreen({ navigation }: { navigation: any }) {
   const [tabActiva, setTabActiva] = useState<'paleta' | 'looks' | 'probador'>('paleta');
   const [generandoColorimetria, setGenerandoColorimetria] = useState(false);
   const [ocasionSeleccionada, setOcasionSeleccionada] = useState('');
+  const [errorVisible, setErrorVisible] = useState<string | null>(null);
 
   if (!perfil) return null;
 
   const generarColorimetria = async () => {
     setGenerandoColorimetria(true);
+    setErrorVisible(null);
     try {
       const colorimetria = await claudeService.analizarImagenPersonal(perfil, undefined);
-      // Guardar colorimetría en el perfil
       const { actualizarPerfil } = useClientaStore.getState();
       await actualizarPerfil({ colorimetria });
-    } catch {
-      Alert.alert('Error', 'No se pudo generar el análisis. Inténtalo de nuevo.');
+    } catch (e: any) {
+      setErrorVisible(e?.message || 'No se pudo generar el análisis. Inténtalo de nuevo.');
     } finally {
       setGenerandoColorimetria(false);
     }
@@ -46,9 +47,10 @@ export function MiImagenScreen({ navigation }: { navigation: any }) {
 
   const generarLooks = async () => {
     if (!ocasionSeleccionada) {
-      Alert.alert('Selecciona una ocasión', 'Elige para qué evento quieres los looks.');
+      setErrorVisible('Elige para qué evento quieres los looks.');
       return;
     }
+    setErrorVisible(null);
     const ocasion = OCASIONES.find((o) => o.id === ocasionSeleccionada)?.label ?? ocasionSeleccionada;
     await generarNuevosLooks(ocasion);
   };
@@ -78,6 +80,15 @@ export function MiImagenScreen({ navigation }: { navigation: any }) {
           );
         })}
       </View>
+
+      {errorVisible && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorTexto}>⚠ {errorVisible}</Text>
+          <TouchableOpacity onPress={() => setErrorVisible(null)}>
+            <Text style={styles.errorCerrar}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
@@ -299,4 +310,11 @@ const styles = StyleSheet.create({
   arOpcionTexto: { flex: 1 },
   arOpcionTitulo: { fontFamily: FontFamily.sansMedium, fontSize: FontSize.bodyMd, color: Colors.negrocacao, marginBottom: 2 },
   arOpcionDesc: { fontFamily: FontFamily.sansRegular, fontSize: FontSize.bodySm, color: Colors.piedra },
+  errorBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#FEE2E2', borderLeftWidth: 4, borderLeftColor: '#EF4444',
+    paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm,
+  },
+  errorTexto: { flex: 1, fontSize: 13, color: '#991B1B', fontFamily: FontFamily.sansRegular },
+  errorCerrar: { fontSize: 16, color: '#991B1B', paddingLeft: Spacing.sm },
 });

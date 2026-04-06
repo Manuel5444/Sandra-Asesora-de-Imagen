@@ -31,6 +31,66 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// ─── Mappers DB (snake_case) ↔ TypeScript (camelCase) ─────────────────────────
+
+function mapearPerfil(d: any): PerfilClienta {
+  return {
+    id: d.id,
+    userId: d.user_id,
+    nombre: d.nombre,
+    apellidos: d.apellidos,
+    edad: d.edad,
+    ciudad: d.ciudad,
+    pais: d.pais,
+    latitud: d.latitud,
+    longitud: d.longitud,
+    momentoVital: d.momento_vital,
+    tipoEstilo: d.tipo_estilo,
+    rangoPrecio: d.rango_precio,
+    metasPersonales: d.metas_personales ?? [],
+    fotoUrl: d.foto_url,
+    colorimetria: d.colorimetria,
+    plan: d.plan ?? 'basico',
+    puntosSandra: d.puntos_sandra ?? 0,
+    logros: d.logros ?? [],
+    etapaKanban: d.etapa_kanban,
+    creadoEn: d.creado_en,
+    actualizadoEn: d.actualizado_en,
+  } as any;
+}
+
+function mapearCambiosPerfil(cambios: Partial<PerfilClienta>): Record<string, any> {
+  const mapa: Record<string, string> = {
+    userId: 'user_id',
+    momentoVital: 'momento_vital',
+    tipoEstilo: 'tipo_estilo',
+    rangoPrecio: 'rango_precio',
+    metasPersonales: 'metas_personales',
+    fotoUrl: 'foto_url',
+    puntosSandra: 'puntos_sandra',
+    etapaKanban: 'etapa_kanban',
+    creadoEn: 'creado_en',
+    actualizadoEn: 'actualizado_en',
+  };
+  const resultado: Record<string, any> = {};
+  for (const [k, v] of Object.entries(cambios)) {
+    resultado[mapa[k] ?? k] = v;
+  }
+  return resultado;
+}
+
+function mapearPostit(d: any): Postit {
+  return {
+    id: d.id,
+    contenido: d.contenido,
+    color: d.color,
+    clientaId: d.clienta_id,
+    fechaLimite: d.fecha_limite,
+    completado: d.completado,
+    creadoEn: d.creado_en,
+  };
+}
+
 // ─── Autenticación ────────────────────────────────────────────────────────────
 
 export const authService = {
@@ -81,7 +141,7 @@ export const perfilService = {
       console.error('Error obteniendo perfil:', error);
       return null;
     }
-    return data;
+    return data ? mapearPerfil(data) : null;
   },
 
   async crearPerfil(perfil: any) {
@@ -111,19 +171,19 @@ export const perfilService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearPerfil(data) : data;
   },
 
   async actualizarPerfil(userId: string, cambios: Partial<PerfilClienta>) {
     const { data, error } = await supabase
       .from('perfiles_clientas')
-      .update({ ...cambios, actualizado_en: new Date().toISOString() })
+      .update({ ...mapearCambiosPerfil(cambios), actualizado_en: new Date().toISOString() })
       .eq('user_id', userId)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearPerfil(data) : data;
   },
 
   async subirFotoPerfil(userId: string, uri: string): Promise<string> {
@@ -152,7 +212,7 @@ export const perfilService = {
       .order('actualizado_en', { ascending: false });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearPerfil);
   },
 
   async buscarClientas(query: string): Promise<PerfilClienta[]> {
@@ -292,7 +352,7 @@ export const postitService = {
       .order('creado_en', { ascending: false });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearPostit);
   },
 
   async crearPostit(postit: Omit<Postit, 'id' | 'creadoEn'>) {
@@ -312,19 +372,26 @@ export const postitService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearPostit(data) : data;
   },
 
   async actualizarPostit(id: string, cambios: Partial<Postit>) {
+    const mapped: Record<string, any> = {};
+    if ('contenido' in cambios) mapped.contenido = cambios.contenido;
+    if ('color' in cambios) mapped.color = cambios.color;
+    if ('completado' in cambios) mapped.completado = cambios.completado;
+    if ('clientaId' in cambios) mapped.clienta_id = cambios.clientaId;
+    if ('fechaLimite' in cambios) mapped.fecha_limite = cambios.fechaLimite;
+
     const { data, error } = await supabase
       .from('postits')
-      .update(cambios)
+      .update(mapped)
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearPostit(data) : data;
   },
 
   async eliminarPostit(id: string) {

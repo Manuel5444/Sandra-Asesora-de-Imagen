@@ -6,10 +6,11 @@ import * as Font from 'expo-font';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 // GestureHandlerRootView solo en móvil (en web causa pantalla en blanco)
+// En web, height:'100%' asegura que la app llene el viewport y la barra inferior sea visible
 const GestureWrapper =
   Platform.OS === 'web'
     ? ({ children }: { children: React.ReactNode }) =>
-        React.createElement(View, { style: { flex: 1 } }, children)
+        React.createElement(View, { style: { flex: 1, height: '100%' } }, children)
     : require('react-native-gesture-handler').GestureHandlerRootView;
 
 // SplashScreen solo en móvil
