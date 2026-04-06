@@ -17,7 +17,7 @@ import { PasoEstilo } from './pasos/PasoEstilo';
 import { PasoCiudad } from './pasos/PasoCiudad';
 import { PasoMetas } from './pasos/PasoMetas';
 import type { MomentoVital, TipoEstilo, RangoPrecio } from '../../types';
-import { perfilService } from '../../services/supabase';
+import { perfilService, supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 
 const { width: ANCHO } = Dimensions.get('window');
@@ -80,23 +80,23 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
   };
 
   const completarOnboarding = async () => {
-    if (!user) return;
     setGuardando(true);
     setErrorGuardado(null);
 
     try {
-      let fotoUrl: string | undefined;
-      // Subir foto solo si hay una URI válida (no funciona en web con URIs locales)
-      if (datos.fotoUri && datos.fotoUri.startsWith('http')) {
-        try {
-          fotoUrl = await perfilService.subirFotoPerfil(user.id, datos.fotoUri);
-        } catch {
-          // Si falla la foto, continuamos sin ella
-        }
+      // Obtener el usuario actual — primero del store, si no directamente de Supabase
+      let currentUserId = user?.id;
+      if (!currentUserId) {
+        const { data } = await supabase.auth.getSession();
+        currentUserId = data.session?.user?.id;
+      }
+      if (!currentUserId) {
+        setErrorGuardado('No hay sesión activa. Cierra sesión, vuelve a entrar e inténtalo de nuevo.');
+        return;
       }
 
       await perfilService.crearPerfil({
-        userId: user.id,
+        userId: currentUserId,
         nombre: datos.nombre,
         apellidos: datos.apellidos,
         edad: parseInt(datos.edad) || 40,
@@ -106,7 +106,6 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
         tipoEstilo: datos.tipoEstilo ?? 'clasico_elegante',
         rangoPrecio: datos.rangoPrecio ?? 'medio',
         metasPersonales: datos.metasPersonales,
-        fotoUrl,
         plan: 'basico',
         puntosSandra: 0,
         logros: [],
@@ -115,7 +114,13 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
       onCompletado();
     } catch (error: any) {
       console.error('Error completando onboarding:', error);
-      setErrorGuardado(error?.message || 'Error al guardar tu perfil. Inténtalo de nuevo.');
+      const msg = error?.message ?? '';
+      if (msg.includes('duplicate') || msg.includes('unique')) {
+        // El perfil ya existe — navegar directamente
+        onCompletado();
+      } else {
+        setErrorGuardado(msg || 'Error al guardar tu perfil. Inténtalo de nuevo.');
+      }
     } finally {
       setGuardando(false);
     }
