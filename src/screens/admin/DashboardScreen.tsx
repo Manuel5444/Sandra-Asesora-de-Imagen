@@ -172,7 +172,7 @@ export function DashboardScreen({ navigation }: { navigation: any }) {
               { icono: '👤', label: 'Nueva clienta', ruta: 'CRM' },
               { icono: '📝', label: 'Nueva nota', ruta: 'PostIts' },
               { icono: '📅', label: 'Nueva sesión', ruta: 'Agenda' },
-              { icono: '📊', label: 'Generar informe', ruta: 'InformesIA' },
+              { icono: '📊', label: 'Generar informe', ruta: 'CRM' },
             ].map((acc, i) => (
               <TouchableOpacity
                 key={i}

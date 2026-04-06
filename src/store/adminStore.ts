@@ -96,7 +96,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
   actualizarEtapaKanban: async (clientaId, etapa) => {
     try {
-      await perfilService.actualizarPerfil(clientaId, { momentoVital: etapa as never });
+      await perfilService.actualizarPerfil(clientaId, { etapaKanban: etapa } as any);
       set((state) => ({
         clientas: state.clientas.map((c) =>
           c.id === clientaId ? { ...c, etapaKanban: etapa } : c

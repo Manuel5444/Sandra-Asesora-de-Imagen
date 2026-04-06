@@ -446,7 +446,6 @@ export type AdminDrawerParamList = {
   Agenda: undefined;
   Pipeline: undefined;
   PostIts: undefined;
-  InformesIA: undefined;
   Metricas: undefined;
 };
 

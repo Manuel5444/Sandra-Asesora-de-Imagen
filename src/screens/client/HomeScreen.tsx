@@ -180,7 +180,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
       {/* Botón de voz IA flotante */}
       <TouchableOpacity
         style={styles.botonVoz}
-        onPress={() => navigation.navigate('AsistenteVoz')}
+        onPress={() => navigation.navigate('MiImagen')}
         activeOpacity={0.85}
       >
         <Text style={styles.botonVozIcono}>🎙</Text>

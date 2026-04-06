@@ -122,10 +122,15 @@ export function CRMScreen({ navigation }: { navigation: any }) {
 
 export function CRMDetalleScreen({ navigation, route }: { navigation: any; route: any }) {
   const { clientaId } = route.params;
-  const { clientas, sesiones, informes, seleccionarClienta, generarInforme, generandoInforme } = useAdminStore();
+  const { clientas, sesiones, informes, seleccionarClienta, cargarInformes, cargarSesiones, generarInforme, generandoInforme } = useAdminStore();
   const clienta = clientas.find((c) => c.id === clientaId);
 
   const [tabActiva, setTabActiva] = useState<'perfil' | 'sesiones' | 'informes'>('perfil');
+
+  useEffect(() => {
+    cargarInformes(clientaId);
+    cargarSesiones();
+  }, [clientaId]);
 
   if (!clienta) {
     return (

@@ -79,6 +79,56 @@ function mapearCambiosPerfil(cambios: Partial<PerfilClienta>): Record<string, an
   return resultado;
 }
 
+function mapearSesion(d: any): Sesion {
+  return {
+    id: d.id,
+    clientaId: d.clienta_id,
+    tipo: d.tipo,
+    estado: d.estado,
+    fechaHora: d.fecha_hora,
+    duracionMinutos: d.duracion_minutos,
+    ubicacion: d.ubicacion,
+    esPresencial: d.es_presencial,
+    notas: d.notas,
+    notasSandra: d.notas_sandra,
+    valoracion: d.valoracion,
+    precio: d.precio,
+    pagado: d.pagado,
+    creadaEn: d.creada_en,
+  };
+}
+
+function mapearInforme(d: any): InformeIA {
+  return {
+    id: d.id,
+    clientaId: d.clienta_id,
+    tipo: d.tipo,
+    titulo: d.titulo,
+    contenido: d.contenido,
+    estado: d.estado,
+    pdfUrl: d.pdf_url,
+    creadoEn: d.creado_en,
+    enviadoEn: d.enviado_en,
+  };
+}
+
+function mapearSesionParaDB(sesion: Partial<Sesion>): Record<string, any> {
+  const resultado: Record<string, any> = {};
+  if ('clientaId' in sesion) resultado.clienta_id = sesion.clientaId;
+  if ('tipo' in sesion) resultado.tipo = sesion.tipo;
+  if ('estado' in sesion) resultado.estado = sesion.estado;
+  if ('fechaHora' in sesion) resultado.fecha_hora = sesion.fechaHora;
+  if ('duracionMinutos' in sesion) resultado.duracion_minutos = sesion.duracionMinutos;
+  if ('ubicacion' in sesion) resultado.ubicacion = sesion.ubicacion;
+  if ('esPresencial' in sesion) resultado.es_presencial = sesion.esPresencial;
+  if ('notas' in sesion) resultado.notas = sesion.notas;
+  if ('notasSandra' in sesion) resultado.notas_sandra = sesion.notasSandra;
+  if ('valoracion' in sesion) resultado.valoracion = sesion.valoracion;
+  if ('precio' in sesion) resultado.precio = sesion.precio;
+  if ('pagado' in sesion) resultado.pagado = sesion.pagado;
+  return resultado;
+}
+
 function mapearPostit(d: any): Postit {
   return {
     id: d.id,
@@ -219,10 +269,10 @@ export const perfilService = {
     const { data, error } = await supabase
       .from('perfiles_clientas')
       .select('*')
-      .or(`nombre.ilike.%${query}%,apellidos.ilike.%${query}%,email.ilike.%${query}%`);
+      .or(`nombre.ilike.%${query}%,apellidos.ilike.%${query}%`);
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearPerfil);
   },
 
   async filtrarPorEtapa(etapa: EtapaKanban): Promise<PerfilClienta[]> {
@@ -233,7 +283,7 @@ export const perfilService = {
       .order('actualizado_en', { ascending: false });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearPerfil);
   },
 
   async filtrarPorMomento(momento: MomentoVital): Promise<PerfilClienta[]> {
@@ -243,7 +293,7 @@ export const perfilService = {
       .eq('momento_vital', momento);
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearPerfil);
   },
 };
 
@@ -259,7 +309,7 @@ export const sesionService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearSesion);
   },
 
   async obtenerSesionesSemana(): Promise<Sesion[]> {
@@ -276,30 +326,30 @@ export const sesionService = {
       .order('fecha_hora', { ascending: true });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearSesion);
   },
 
   async crearSesion(sesion: Omit<Sesion, 'id' | 'creadaEn'>) {
     const { data, error } = await supabase
       .from('sesiones')
-      .insert([sesion])
+      .insert([mapearSesionParaDB(sesion)])
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearSesion(data) : data;
   },
 
   async actualizarSesion(id: string, cambios: Partial<Sesion>) {
     const { data, error } = await supabase
       .from('sesiones')
-      .update(cambios)
+      .update(mapearSesionParaDB(cambios))
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearSesion(data) : data;
   },
 };
 
@@ -315,18 +365,28 @@ export const informeService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapearInforme);
   },
 
   async guardarInforme(informe: Omit<InformeIA, 'id' | 'creadoEn'>) {
+    const row: Record<string, any> = {
+      clienta_id: informe.clientaId,
+      tipo: informe.tipo,
+      titulo: informe.titulo,
+      contenido: informe.contenido,
+      estado: informe.estado,
+    };
+    if (informe.pdfUrl) row.pdf_url = informe.pdfUrl;
+    if (informe.enviadoEn) row.enviado_en = informe.enviadoEn;
+
     const { data, error } = await supabase
       .from('informes_ia')
-      .insert([informe])
+      .insert([row])
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearInforme(data) : data;
   },
 
   async actualizarEstado(id: string, estado: InformeIA['estado']) {
@@ -338,7 +398,7 @@ export const informeService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data ? mapearInforme(data) : data;
   },
 };
 
@@ -448,7 +508,13 @@ export const chatService = {
   async enviarMensaje(mensaje: Omit<Mensaje, 'id' | 'creadoEn' | 'leido'>) {
     const { data, error } = await supabase
       .from('mensajes')
-      .insert([{ ...mensaje, leido: false }])
+      .insert([{
+        conversacion_id: mensaje.conversacionId,
+        rol: mensaje.rol,
+        contenido: mensaje.contenido,
+        tipo: mensaje.tipo,
+        leido: false,
+      }])
       .select()
       .single();
 

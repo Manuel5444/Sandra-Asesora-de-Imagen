@@ -18,7 +18,9 @@ export function MiTransformacionScreen() {
 
   const logrosCompletados = logros.filter((l) => l.completado);
   const logrosPendientes = logros.filter((l) => !l.completado);
-  const progresoTotal = Math.round((logrosCompletados.length / logros.length) * 100);
+  const progresoTotal = logros.length > 0
+    ? Math.round((logrosCompletados.length / logros.length) * 100)
+    : 0;
 
   return (
     <SafeAreaView style={styles.contenedor} edges={['top']}>
