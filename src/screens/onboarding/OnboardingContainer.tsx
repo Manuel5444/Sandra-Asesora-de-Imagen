@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
   View,
+  Text,
   ScrollView,
   StyleSheet,
   Dimensions,
@@ -42,6 +43,7 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
   const { user } = useAuthStore();
   const [pasoActual, setPasoActual] = useState(0);
   const [guardando, setGuardando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const [datos, setDatos] = useState<DatosOnboarding>({
     nombre: '',
@@ -80,11 +82,17 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
   const completarOnboarding = async () => {
     if (!user) return;
     setGuardando(true);
+    setErrorGuardado(null);
 
     try {
       let fotoUrl: string | undefined;
-      if (datos.fotoUri) {
-        fotoUrl = await perfilService.subirFotoPerfil(user.id, datos.fotoUri);
+      // Subir foto solo si hay una URI válida (no funciona en web con URIs locales)
+      if (datos.fotoUri && datos.fotoUri.startsWith('http')) {
+        try {
+          fotoUrl = await perfilService.subirFotoPerfil(user.id, datos.fotoUri);
+        } catch {
+          // Si falla la foto, continuamos sin ella
+        }
       }
 
       await perfilService.crearPerfil({
@@ -105,8 +113,9 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
       });
 
       onCompletado();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error completando onboarding:', error);
+      setErrorGuardado(error?.message || 'Error al guardar tu perfil. Inténtalo de nuevo.');
     } finally {
       setGuardando(false);
     }
@@ -135,6 +144,13 @@ export function OnboardingContainer({ onCompletado }: OnboardingContainerProps) 
           />
         ))}
       </View>
+
+      {/* Error al guardar */}
+      {errorGuardado && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorTexto}>⚠ {errorGuardado}</Text>
+        </View>
+      )}
 
       {/* Scroll horizontal de pasos */}
       <ScrollView
@@ -195,5 +211,17 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
+  },
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+  },
+  errorTexto: {
+    fontSize: 13,
+    color: '#991B1B',
+    fontWeight: '500',
   },
 });

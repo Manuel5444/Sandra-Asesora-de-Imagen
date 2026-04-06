@@ -84,10 +84,29 @@ export const perfilService = {
     return data;
   },
 
-  async crearPerfil(perfil: Omit<PerfilClienta, 'id' | 'creadoEn' | 'actualizadoEn'>) {
+  async crearPerfil(perfil: any) {
+    // Mapeamos camelCase → snake_case antes de enviar a Supabase
+    const row: Record<string, any> = {
+      nombre: perfil.nombre,
+      apellidos: perfil.apellidos || '',
+      ciudad: perfil.ciudad || '',
+      plan: perfil.plan || 'basico',
+      puntos_sandra: perfil.puntosSandra ?? 0,
+      logros: perfil.logros || [],
+      metas_personales: perfil.metasPersonales || [],
+    };
+    if (perfil.userId) row.user_id = perfil.userId;
+    if (perfil.edad) row.edad = perfil.edad;
+    if (perfil.pais) row.pais = perfil.pais;
+    if (perfil.momentoVital) row.momento_vital = perfil.momentoVital;
+    if (perfil.tipoEstilo) row.tipo_estilo = perfil.tipoEstilo;
+    if (perfil.rangoPrecio) row.rango_precio = perfil.rangoPrecio;
+    if (perfil.fotoUrl) row.foto_url = perfil.fotoUrl;
+    if (perfil.etapaKanban) row.etapa_kanban = perfil.etapaKanban;
+
     const { data, error } = await supabase
       .from('perfiles_clientas')
-      .insert([perfil])
+      .insert([row])
       .select()
       .single();
 
@@ -277,9 +296,18 @@ export const postitService = {
   },
 
   async crearPostit(postit: Omit<Postit, 'id' | 'creadoEn'>) {
+    // Mapeamos clientaId → clienta_id (snake_case para Supabase)
+    const row: Record<string, any> = {
+      contenido: postit.contenido,
+      color: postit.color,
+      completado: postit.completado,
+    };
+    if (postit.clientaId) row.clienta_id = postit.clientaId;
+    if (postit.fechaLimite) row.fecha_limite = postit.fechaLimite;
+
     const { data, error } = await supabase
       .from('postits')
-      .insert([postit])
+      .insert([row])
       .select()
       .single();
 

@@ -125,15 +125,18 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   crearClienta: async (datos: { nombre: string; apellidos: string; email: string; ciudad: string }) => {
     try {
       await perfilService.crearPerfil({
-        userId: '',
         nombre: datos.nombre,
         apellidos: datos.apellidos,
-        email: datos.email,
         ciudad: datos.ciudad,
-        momentoVital: 'reinvencion_profesional',
+        pais: 'España',
+        momentoVital: 'otro',
+        tipoEstilo: 'clasico_elegante',
+        rangoPrecio: 'medio',
         plan: 'basico',
         puntosSandra: 0,
         etapaKanban: 'nuevo_lead',
+        metasPersonales: [],
+        logros: [],
       } as any);
       const clientas = await perfilService.obtenerTodasClientas();
       set({ clientas });
