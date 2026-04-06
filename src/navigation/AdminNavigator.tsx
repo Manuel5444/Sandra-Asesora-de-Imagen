@@ -92,6 +92,7 @@ function NuevaClientaScreen({ navigation }: { navigation: any }) {
     setGuardando(true);
     try {
       await useAdminStore.getState().crearClienta({ nombre, apellidos, email, ciudad });
+
       navigation.goBack();
     } catch {
       setGuardando(false);
